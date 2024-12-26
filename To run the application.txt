@@ -1,0 +1,8 @@
+To run the application:
+    
+  1. install the requirement.txt
+  2. download ollama model and application 
+
+         ollama run gemma2
+
+  3. reference link for ollama -- https://github.com/ollama/ollama?tab=readme-ov-file
