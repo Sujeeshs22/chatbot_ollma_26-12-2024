@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        #chat-container {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        #chat-header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            text-align: center;
+        }
+        #chat-history {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        #chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-history::-webkit-scrollbar-thumb {
+            background: #007bff;
+            border-radius: 10px;
+        }
+        #chat-history .message {
+            margin-bottom: 10px;
+        }
+        #chat-history .message.user {
+            text-align: right;
+        }
+        #chat-history .message.ai {
+            text-align: left;
+        }
+        .message .bubble {
+            display: inline-block;
+            padding: 10px 15px;
+            border-radius: 20px;
+        }
+        .message.user .bubble {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .message.ai .bubble {
+            background-color: #f1f1f1;
+            color: #333;
+        }
+        #typing-indicator {
+            display: none;
+        }
+        #typing-indicator span {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            background-color: #007bff;
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: typing 1s infinite ease-in-out;
+        }
+        @keyframes typing {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        #chat-form input {
+            border-radius: 0;
+        }
+        #chat-form button {
+            border-radius: 0;
+        }
+        #chat-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button id="chat-icon">💬</button>
+    <div id="chat-container">
+        <div id="chat-header">
+            <h2>Chat Bot</h2>
+        </div>
+        <div id="chat-history"></div>
+        <form id="chat-form">
+            <div class="input-group">
+                <input type="text" id="user-input" class="form-control" aria-label="Type your message" autofocus required>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const chatHistory = $("#chat-history");
+            const typingIndicator = $('<div id="typing-indicator" class="text-left mb-2"><span></span><span></span><span></span></div>');
+
+            $("#chat-icon").click(function () {
+                $("#chat-container").toggle();
+            });
+
+            $("#chat-form").submit(function (event) {
+                event.preventDefault();
+
+                const userInput = $("#user-input").val().trim();
+                if (userInput) {
+                    chatHistory.append(`
+                        <div class="message user">
+                            <div class="bubble">${userInput}</div>
+                        </div>
+                    `);
+
+                    $("#user-input").val("");
+                    chatHistory.scrollTop(chatHistory[0].scrollHeight);
+
+                    chatHistory.append(typingIndicator);
+
+                    $.ajax({
+                        url: "/chat",
+                        type: "POST",
+                        data: { user_input: userInput },
+                        success: function (response) {
+                            typingIndicator.remove();
+                            chatHistory.append(`
+                                <div class="message ai">
+                                    <div class="bubble">${response}</div>
+                                </div>
+                            `);
+                            chatHistory.scrollTop(chatHistory[0].scrollHeight);
+                        },
+                        error: function () {
+                            typingIndicator.remove();
+                            alert("Error processing your request.");
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
